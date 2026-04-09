@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<!-- saved from url=(0059)file:///Users/han/Downloads/flightmode-article-tool-v3.html -->
+<html lang="zh-TW"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>飛航模飾 — 文章新增工具 v3</title>
+<link href="./飛航模飾 — 文章新增工具 v3_files/css2" rel="stylesheet">
+<style>
+:root {
+  --navy:#1E2D3D; --navy-mid:#2C3E52; --slate:#3D5166;
+  --accent:#B8956A; --accent-light:#D4B896; --accent-pale:#F0E8DC;
+  --cream:#F5EFE5; --warm-white:#FAF8F4; --border:#E0D8CE;
+  --text:#2C3A48; --text-light:#6B7C8D; --muted:#8A9BAA;
+  --success:#4A8F6A; --error:#C0504A;
+  --font-display:'DM Serif Display','Noto Serif TC',serif;
+  --font-serif:'Noto Serif TC',serif;
+  --font-body:'Noto Sans TC',sans-serif;
+  --radius:12px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{font-size:16px;}
+body{font-family:var(--font-body);background:var(--warm-white);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+/* ── Header ── */
+.header{background:var(--navy);padding:18px 32px;display:flex;align-items:center;gap:16px;border-bottom:1px solid rgba(184,149,106,.2);}
+.header-logo{font-family:var(--font-display);font-size:20px;color:var(--accent-light);letter-spacing:.06em;}
+.header-sub{font-size:11px;color:rgba(255,255,255,.35);letter-spacing:.12em;text-transform:uppercase;padding-left:16px;border-left:1px solid rgba(255,255,255,.1);}
+.header-badge{margin-left:auto;background:rgba(184,149,106,.2);color:var(--accent-light);font-size:11px;padding:4px 14px;border-radius:50px;letter-spacing:.06em;white-space:nowrap;}
+
+.main{max-width:1160px;margin:0 auto;padding:32px 24px 80px;display:flex;flex-direction:column;gap:24px;}
+
+/* ── Panel ── */
+.panel{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.panel-header{background:var(--navy);padding:14px 22px;display:flex;align-items:center;gap:10px;}
+.panel-icon{width:26px;height:26px;background:rgba(184,149,106,.2);border-radius:7px;display:flex;align-items:center;justify-content:center;color:var(--accent-light);font-size:13px;flex-shrink:0;}
+.panel-title{font-family:var(--font-serif);font-size:15px;font-weight:400;color:#fff;letter-spacing:.04em;flex:1;}
+.panel-hint{font-size:11px;color:rgba(255,255,255,.35);}
+.panel-body{padding:22px;}
+
+/* ── Paste area ── */
+.paste-area{width:100%;min-height:100px;padding:14px;border:2px dashed var(--border);border-radius:10px;font-family:'Menlo','Monaco',monospace;font-size:11.5px;line-height:1.6;color:var(--text-light);background:var(--warm-white);outline:none;resize:vertical;transition:border-color .2s,background .2s;}
+.paste-area:focus{border-color:var(--accent);background:#fff;}
+.paste-area.loaded{border-color:var(--success);border-style:solid;background:#f8fbf9;}
+
+.status-bar{display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:8px;font-size:12.5px;margin-top:10px;}
+.status-bar.success{background:#f0f8f3;color:var(--success);border:1px solid rgba(74,143,106,.2);}
+.status-bar.error{background:#fdf2f2;color:var(--error);border:1px solid rgba(192,80,74,.2);}
+.status-bar.idle{background:var(--accent-pale);color:var(--accent);border:1px solid rgba(184,149,106,.2);}
+
+/* ── Queue area ── */
+.queue-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.queue-title-row{display:flex;align-items:center;gap:10px;}
+.queue-count{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:var(--navy);color:var(--accent-light);border-radius:50%;font-size:12px;font-weight:600;}
+.queue-label{font-size:13px;font-weight:500;color:var(--text);}
+
+.queue-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;min-height:0;}
+.queue-empty{text-align:center;padding:28px;color:var(--muted);font-size:13px;border:1.5px dashed var(--border);border-radius:10px;}
+
+/* Article card in queue */
+.q-card{display:flex;align-items:flex-start;gap:12px;padding:13px 15px;border:1px solid var(--border);border-radius:10px;background:var(--warm-white);transition:box-shadow .18s;}
+.q-card:hover{box-shadow:0 2px 12px rgba(28,45,62,.07);}
+.q-num{font-family:var(--font-display);font-size:20px;color:var(--accent-light);min-width:22px;text-align:center;flex-shrink:0;line-height:1.2;}
+.q-body{flex:1;min-width:0;}
+.q-title{font-family:var(--font-serif);font-size:14px;font-weight:500;color:var(--navy);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.q-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.q-tag{font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:50px;background:var(--accent-pale);color:var(--accent);font-weight:500;}
+.q-info{font-size:11px;color:var(--muted);}
+.q-remove{flex-shrink:0;width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .18s;}
+.q-remove:hover{background:#fdf2f2;border-color:rgba(192,80,74,.3);color:var(--error);}
+
+/* ── Form ── */
+.form-section{border:1.5px solid var(--border);border-radius:10px;padding:20px;background:var(--warm-white);}
+.form-section-title{font-size:12px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.form-section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-grid.three{grid-template-columns:1fr 1fr 1fr;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field.full{grid-column:1/-1;}
+label{font-size:11px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);}
+label .req{color:var(--accent);margin-left:2px;}
+input[type="text"],input[type="date"],input[type="number"],select,textarea{
+  padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;
+  font-family:var(--font-body);font-size:13.5px;color:var(--text);
+  background:#fff;outline:none;transition:border-color .2s;width:100%;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+textarea{resize:vertical;min-height:72px;line-height:1.6;}
+.field-hint{font-size:11px;color:var(--muted);line-height:1.5;}
+
+/* Tag selector */
+.tag-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;}
+.tag-opt{display:none;}
+.tag-opt+label{display:flex;align-items:center;justify-content:center;padding:7px 4px;border:1.5px solid var(--border);border-radius:7px;font-size:11.5px;font-weight:400;letter-spacing:.02em;text-transform:none;color:var(--text-light);cursor:pointer;transition:all .15s;text-align:center;}
+.tag-opt:checked+label{background:var(--navy);border-color:var(--navy);color:#fff;}
+.tag-opt+label:hover{border-color:var(--accent);color:var(--accent);}
+
+/* Pos grid */
+.pos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;}
+.pos-opt{display:none;}
+.pos-opt+label{display:block;padding:5px 2px;border:1.5px solid var(--border);border-radius:6px;font-size:10.5px;letter-spacing:.02em;text-transform:none;color:var(--text-light);cursor:pointer;transition:all .15s;text-align:center;}
+.pos-opt:checked+label{background:var(--accent-pale);border-color:var(--accent);color:var(--accent);font-weight:500;}
+
+/* ── Buttons ── */
+.btn{padding:11px 20px;border-radius:9px;font-family:var(--font-serif);font-size:14px;font-weight:400;letter-spacing:.04em;cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap;}
+.btn-primary{background:var(--navy);color:#fff;}
+.btn-primary:hover{background:var(--slate);transform:translateY(-1px);}
+.btn-secondary{background:var(--accent-pale);color:var(--accent);border:1.5px solid rgba(184,149,106,.3);}
+.btn-secondary:hover{background:var(--accent);color:#fff;}
+.btn-outline{background:transparent;color:var(--text-light);border:1.5px solid var(--border);}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent);}
+.btn-success{background:var(--success);color:#fff;}
+.btn-success:hover{opacity:.9;transform:translateY(-1px);}
+.btn-sm{padding:7px 14px;font-size:12px;border-radius:7px;}
+
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;}
+
+/* ── Output ── */
+.output-meta-bar{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#f0f8f3;border:1px solid rgba(74,143,106,.2);border-radius:9px;margin-bottom:14px;flex-wrap:wrap;}
+.output-meta-item{font-size:12.5px;color:var(--success);display:flex;align-items:center;gap:5px;}
+.output-meta-item strong{font-weight:600;}
+
+.code-wrap{background:#1a2433;border-radius:10px;padding:18px;position:relative;overflow:auto;max-height:280px;}
+.code-wrap pre{font-family:'Menlo','Monaco',monospace;font-size:11.5px;line-height:1.7;color:#C8D8E8;white-space:pre;}
+.btn-copy{position:sticky;float:right;top:0;padding:5px 13px;background:rgba(184,149,106,.2);border:1px solid rgba(184,149,106,.3);border-radius:6px;color:var(--accent-light);font-size:11px;letter-spacing:.06em;cursor:pointer;font-family:var(--font-body);transition:all .18s;margin-bottom:8px;}
+.btn-copy:hover{background:rgba(184,149,106,.35);}
+.btn-copy.copied{background:rgba(74,143,106,.25);border-color:rgba(74,143,106,.4);color:#7AC89A;}
+
+.btn-download{width:100%;padding:15px;background:linear-gradient(135deg,var(--navy) 0%,var(--slate) 100%);color:#fff;border:none;border-radius:10px;font-family:var(--font-serif);font-size:16px;font-weight:400;letter-spacing:.08em;cursor:pointer;margin-top:14px;display:flex;align-items:center;justify-content:center;gap:10px;transition:opacity .2s,transform .18s;box-shadow:0 4px 20px rgba(28,45,62,.2);}
+.btn-download:hover{opacity:.92;transform:translateY(-1px);}
+
+/* ── Divider ── */
+.divider{height:1px;background:var(--border);margin:20px 0;}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--navy);color:var(--accent-light);padding:10px 22px;border-radius:50px;font-size:13px;letter-spacing:.04em;opacity:0;transition:all .28s;pointer-events:none;white-space:nowrap;border:1px solid rgba(184,149,106,.25);z-index:999;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+@media(max-width:700px){
+  .form-grid,.form-grid.three{grid-template-columns:1fr;}
+  .field.full{grid-column:auto;}
+  .header{padding:14px 20px;}
+  .btn-row{flex-direction:column;}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">飛航模飾</div>
+  <div class="header-sub">文章新增工具 v3 · 批次新增</div>
+  <div class="header-badge" id="art-count-badge">已輸出：60 篇</div>
+</div>
+
+<div class="main">
+
+  <!-- ── STEP 1: 貼上 HTML ── -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-icon">①</div>
+      <div class="panel-title">貼上目前的知識指南 HTML</div>
+      <div class="panel-hint">每次操作前先從 Shopline 複製最新版本</div>
+    </div>
+    <div class="panel-body">
+      <textarea class="paste-area loaded" id="html-input" placeholder="把從 Shopline 複製的完整 HTML 貼在這裡…
+
+工具會自動偵測 ARTICLES 陣列，你可以接著新增多篇文章後一次輸出。"></textarea>
+      <div class="status-bar success" id="parse-status">✓ 已載入 58 篇文章，可開始填入新文章加入佇列</div>
+    </div>
+  </div>
+
+  <!-- ── STEP 2: 文章佇列 + 表單 ── -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-icon">②</div>
+      <div class="panel-title">新增文章</div>
+      <div class="panel-hint" id="queue-hint">填入資料後加入佇列，可一次新增多篇</div>
+    </div>
+    <div class="panel-body">
+
+      <!-- Queue -->
+      <div class="queue-header">
+        <div class="queue-title-row">
+          <span class="queue-count" id="queue-count">0</span>
+          <span class="queue-label">待新增文章</span>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="clearQueue()" id="clear-queue-btn" style="display: none;">清空佇列</button>
+      </div>
+      <div id="queue-list">
+        <div class="queue-empty" id="queue-empty" style="">尚無待新增文章，請填下方表單加入</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Form -->
+      <div class="form-section">
+        <div class="form-section-title">文章資料</div>
+
+        <div class="form-grid" style="margin-bottom:14px;">
+          <div class="field full">
+            <label>文章標題 <span class="req">*</span></label>
+            <input type="text" id="f-title" placeholder="例：2026 夏季涼感被推薦！材質比較與挑選完整指南">
+          </div>
+          <div class="field full">
+            <label>文章摘要 <span class="req">*</span></label>
+            <textarea id="f-desc" placeholder="50–80 字概述，顯示在卡片下方"></textarea>
+          </div>
+          <div class="field">
+            <label>分類標籤 <span class="req">*</span></label>
+            <div class="tag-grid">
+              <input type="radio" name="tag" id="t-tencel" value="tencel" class="tag-opt"><label for="t-tencel">天絲專區</label>
+              <input type="radio" name="tag" id="t-sheet" value="sheet" class="tag-opt"><label for="t-sheet">床包專區</label>
+              <input type="radio" name="tag" id="t-bedding" value="bedding" class="tag-opt"><label for="t-bedding">棉被枕頭</label>
+              <input type="radio" name="tag" id="t-care" value="care" class="tag-opt"><label for="t-care">清洗保養</label>
+              <input type="radio" name="tag" id="t-lifestyle" value="lifestyle" class="tag-opt"><label for="t-lifestyle">臥室佈置</label>
+              <input type="radio" name="tag" id="t-collab" value="collab" class="tag-opt"><label for="t-collab">聯名系列</label>
+            </div>
+          </div>
+          <div class="field">
+            <label>卡片顯示分類 <span class="req">*</span></label>
+            <input type="text" id="f-cat" placeholder="例：棉被選購、天絲知識、床包材質…">
+            <div class="field-hint">顯示在卡片左上角金色字</div>
+          </div>
+          <div class="field full">
+            <label>Shopline 頁面路徑 <span class="req">*</span>（/pages/ 後面的部分）</label>
+            <input type="text" id="f-slug" placeholder="例：summer-quilt-2026">
+          </div>
+          <div class="field full">
+            <label>封面圖片網址</label>
+            <input type="text" id="f-img" placeholder="https://i.ibb.co/... 或 https://shoplineimg.com/...（留空顯示預設色塊）">
+          </div>
+        </div>
+
+        <div class="form-grid three">
+          <div class="field">
+            <label>圖片顯示位置</label>
+            <div class="pos-grid">
+              <input type="radio" name="pos" id="p-tl" value="left top" class="pos-opt"><label for="p-tl">左上</label>
+              <input type="radio" name="pos" id="p-tc" value="center top" class="pos-opt"><label for="p-tc">中上</label>
+              <input type="radio" name="pos" id="p-tr" value="right top" class="pos-opt"><label for="p-tr">右上</label>
+              <input type="radio" name="pos" id="p-cl" value="left center" class="pos-opt" checked=""><label for="p-cl">左中 ★</label>
+              <input type="radio" name="pos" id="p-cc" value="center center" class="pos-opt"><label for="p-cc">正中</label>
+              <input type="radio" name="pos" id="p-cr" value="right center" class="pos-opt"><label for="p-cr">右中</label>
+              <input type="radio" name="pos" id="p-bl" value="left bottom" class="pos-opt"><label for="p-bl">左下</label>
+              <input type="radio" name="pos" id="p-bc" value="center bottom" class="pos-opt"><label for="p-bc">中下</label>
+              <input type="radio" name="pos" id="p-br" value="right bottom" class="pos-opt"><label for="p-br">右下</label>
+            </div>
+          </div>
+          <div class="field">
+            <label>發布日期 <span class="req">*</span></label>
+            <input type="date" id="f-date">
+          </div>
+          <div class="field">
+            <label>閱讀時間（分鐘）<span class="req">*</span></label>
+            <input type="number" id="f-read" min="1" max="30" placeholder="5">
+            <div class="field-hint">800字≈3分 · 1500字≈5分 · 2500字≈8分</div>
+          </div>
+        </div>
+
+        <div class="btn-row" style="margin-top:18px;">
+          <button class="btn btn-secondary" onclick="addToQueue()">＋ 加入佇列</button>
+          <button class="btn btn-outline" onclick="clearForm()">清空表單</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── STEP 3: 輸出 ── -->
+  <div class="panel" id="output-panel" style="display: block;">
+    <div class="panel-header">
+      <div class="panel-icon">③</div>
+      <div class="panel-title">輸出完成 — 複製或下載後貼回 Shopline</div>
+    </div>
+    <div class="panel-body">
+      <div class="output-meta-bar" id="output-meta-bar">
+    <div class="output-meta-item">✓ 共新增 <strong>2 篇</strong>文章</div>
+    <div class="output-meta-item" style="color:var(--muted);font-size:11.5px;"><span style="opacity:.7">1.</span> 涼感床包有用嗎？涼感床包推薦怎麼挑？一次搞懂原理與… &nbsp;·&nbsp; <span style="opacity:.7">2.</span> 涼感材質怎麼選？從聚酯纖維到天絲，拆解市售 5 種…</div>
+    <div class="output-meta-item" style="margin-left:auto;">總計 <strong>60 篇</strong></div></div>
+      <div class="code-wrap">
+        <button class="btn-copy" id="copy-btn" onclick="copyOutput()">複製全部 HTML</button>
+        <pre id="output-preview">&lt;!DOCTYPE html&gt;
+&lt;html lang="zh-TW"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"/&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"/&gt;
+
+  &lt;!-- SEO: 針對寢具產業高搜尋量關鍵字優化 --&gt;
+  &lt;title&gt;天絲床包推薦・床包尺寸・棉被枕頭選購完整指南 2026｜飛航模飾 Flight Mode&lt;/title&gt;
+  &lt;meta name="description" content="天絲床包怎麼選？床包尺寸對照、棉被推薦、枕頭比較、寢具清洗保養，55篇專業指南一次收錄。飛航模飾帶你挑對寢具，睡好每一夜。"/&gt;
+  &lt;meta name="keywords" content="天絲床包,床包尺寸對照表,天絲材質是什麼,棉被推薦2026,枕頭推薦,天絲優缺點,King Size幾公分,床包怎麼選,寢具清洗保養,雙人床包尺寸,天絲vs純棉,床包多久洗一次,飛航模飾,Flight Mode寢具"/&gt;
+  &lt;link rel="canonical" href="https://www.flightmodeshh.com.tw/pages/guide"/&gt;
+  &lt;meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"/&gt;
+  &lt;meta name="author" content="飛航模飾 Flight Mode 寢具顧問團隊"/&gt;
+  &lt;meta property="og:title" content="天絲床包・床包尺寸・棉被枕頭完整選購指南 2026｜飛航模飾"/&gt;
+  &lt;meta property="og:description" content="天絲床包推薦、床包尺寸全攻略、棉被枕頭挑選指南、寢具清洗保養教學，60篇專業文章幫你買對、睡好。飛航模飾寢具知識庫。"/&gt;
+  &lt;meta property="og:url" content="https://www.flightmodeshh.com.tw/pages/guide"/&gt;
+  &lt;meta name="twitter:card" content="summary_large_image"/&gt;
+  &lt;meta name="twitter:title" content="天絲床包・床包尺寸・棉被枕頭完整選購指南 2026｜飛航模飾"/&gt;
+  &lt;meta name="twitter:description" content="天絲床包推薦、床包尺寸全攻略、棉被枕頭挑選指南，60篇專業文章幫你買對、睡好。飛航模飾寢具知識庫。"/&gt;
+  &lt;meta property="og:type" content="website"/&gt;
+  &lt;script type="application/ld+json"&gt;[{"@context": "https://schema.org", "@type": "CollectionPage", "name": "天絲床包・床包尺寸・棉被枕頭選購完整指南 2026｜飛航模飾", "description": "60篇寢具專業知識，涵蓋天絲材質、床包選購尺寸、棉被枕頭推薦、清洗保養完整指南，飛航模飾幫你買對寢具", "url": "https://www.flightmodeshh.com.tw/pages/guide", "inLanguage": "zh-TW", "dateModified": "2026-04-09", "publisher": {"@type": "Organization", "name": "飛航模飾 Flight Mode", "url": "https://www.flightmodeshh.com.tw", "logo": {"@type": "ImageObject", "url": "https://www.flightmodeshh.com.tw/logo.png"}}, "breadcrumb": {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "飛航模飾", "item": "https://www.flightmodeshh.com.tw"}, {"@type": "ListItem", "position": 2, "name": "寢具知識指南", "item": "https://www.flightmodeshh.com.tw/pages/guide"}]}}, {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "天絲材質是什麼？", "acceptedAnswer": {"@type": "Answer", "text": "天絲（Tencel™）是由奧地利蘭精公司以永續木漿製成的再生纖維素纖維，具有比棉花更細緻的纖維結構，觸感絲滑柔軟、吸濕排汗優異、不易滋生細菌，適合四季使用，是近年最受歡迎的高端寢具材質之一。"}}, {"@type": "Question", "name": "床包尺寸怎麼選？", "acceptedAnswer": {"@type": "Answer", "text": "台灣常見床包尺寸：單人（3尺）適合90×190cm床墊、雙人（5尺）適合150×186cm、加大雙人（6尺）適合180×186cm、King Size約182×190cm以上。購買前建議先量床
+
+… [中間省略，完整內容請下載或複製全部] …
+
+"sticky-bar" role="complementary" aria-label="前往 Flight Mode 官網選購"&gt;
+  &lt;p class="sticky-copy"&gt;找到喜歡的文章？&amp;ensp;&lt;strong&gt;馬上選購寢具&lt;/strong&gt;&lt;/p&gt;
+  &lt;a href="https://www.flightmodeshh.com.tw/pages/fmall" class="btn-sticky"
+     target="_blank" rel="noopener" aria-label="前往官網選購"&gt;
+    前往選購
+    &lt;svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+         stroke="currentColor" stroke-width="2.2"&gt;
+      &lt;line x1="5" y1="12" x2="19" y2="12"/&gt;
+      &lt;polyline points="12 5 19 12 12 19"/&gt;
+    &lt;/svg&gt;
+  &lt;/a&gt;
+  &lt;button class="sticky-close" id="sticky-close" aria-label="關閉"&gt;
+    &lt;svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;
+      &lt;line x1="18" y1="6" x2="6" y2="18"/&gt;
+      &lt;line x1="6" y1="6" x2="18" y2="18"/&gt;
+    &lt;/svg&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+
+
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+      </div>
+      <button class="btn-download" onclick="downloadHTML()">
+        ↓ 下載更新後的 HTML 檔案
+      </button>
+      <div class="field-hint" style="margin-top:10px;text-align:center;">
+        下載後直接上傳 Shopline，或複製全部貼到 HTML 編輯器
+      </div>
+    </div>
+  </div>
+
+  <!-- Generate button (fixed bottom) -->
+  <div id="generate-bar" style="position: sticky; bottom: 20px; z-index: 50; display: none;">
+    <button class="btn btn-success" style="width:100%;padding:15px;font-size:15px;border-radius:12px;box-shadow:0 6px 24px rgba(28,45,62,.25);" onclick="generateHTML()">
+      ✦ 將佇列中的 <span id="gen-count">0</span> 篇文章全部加入 HTML 並輸出
+    </button>
+  </div>
+
+</div>
+
+<div class="toast" id="toast">已清空佇列</div>
+
+<script>
+// ── State ──
+let currentHTML = '';
+let baseArticleCount = 0;
+let queue = []; // array of article objects
+
+// ── Tag default cat ──
+const TAG_DEFAULT_CAT = {
+  tencel:'天絲知識', sheet:'床包選購', bedding:'棉被選購',
+  care:'清洗保養', lifestyle:'臥室佈置', collab:'聯名系列'
+};
+document.querySelectorAll('.tag-opt').forEach(r => {
+  r.addEventListener('change', () => {
+    const catEl = document.getElementById('f-cat');
+    const cur = catEl.value.trim();
+    if (!cur || Object.values(TAG_DEFAULT_CAT).includes(cur)) {
+      catEl.value = TAG_DEFAULT_CAT[r.value] || '';
+    }
+  });
+});
+
+// ── Default date today ──
+document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
+
+// ── Detect HTML on paste ──
+const htmlInput = document.getElementById('html-input');
+htmlInput.addEventListener('input', detectHTML);
+htmlInput.addEventListener('paste', () => setTimeout(detectHTML, 60));
+
+function detectHTML() {
+  const val = htmlInput.value.trim();
+  if (!val) {
+    setStatus('idle', '⟡ 貼上 HTML 後會自動偵測目前文章數量');
+    document.getElementById('art-count-badge').textContent = '尚未載入 HTML';
+    currentHTML = ''; baseArticleCount = 0;
+    return;
+  }
+  const hasArticles = val.includes('const ARTICLES=[') || val.includes('const ARTICLES = [');
+  const titleMatches = (val.match(/title:'/g) || []).length;
+  if (!hasArticles || titleMatches === 0) {
+    setStatus('error', '✗ 找不到 ARTICLES 陣列，請確認貼入的是正確的知識指南 HTML');
+    currentHTML = ''; baseArticleCount = 0;
+    document.getElementById('art-count-badge').textContent = '格式錯誤';
+    return;
+  }
+  currentHTML = val;
+  baseArticleCount = titleMatches;
+  setStatus('success', `✓ 已載入 ${baseArticleCount} 篇文章，可開始填入新文章加入佇列`);
+  htmlInput.classList.add('loaded');
+  document.getElementById('art-count-badge').textContent = `目前 ${baseArticleCount} 篇`;
+}
+
+function setStatus(type, msg) {
+  const el = document.getElementById('parse-status');
+  el.className = `status-bar ${type}`;
+  el.innerHTML = msg;
+}
+
+// ── Add article to queue ──
+function addToQueue() {
+  const title = document.getElementById('f-title').value.trim();
+  const desc  = document.getElementById('f-desc').value.trim();
+  const tag   = document.querySelector('.tag-opt:checked')?.value || '';
+  const cat   = document.getElementById('f-cat').value.trim();
+  const slug  = document.getElementById('f-slug').value.trim().replace(/^\/pages\//, '');
+  const img   = document.getElementById('f-img').value.trim();
+  const pos   = document.querySelector('.pos-opt:checked')?.value || 'center center';
+  const date  = document.getElementById('f-date').value;
+  const read  = document.getElementById('f-read').value;
+
+  if (!title) { showToast('請填入文章標題'); return; }
+  if (!desc)  { showToast('請填入文章摘要'); return; }
+  if (!tag)   { showToast('請選擇分類標籤'); return; }
+  if (!cat)   { showToast('請填入顯示分類名稱'); return; }
+  if (!slug)  { showToast('請填入頁面路徑'); return; }
+  if (!date)  { showToast('請選擇發布日期'); return; }
+  if (!read)  { showToast('請填入閱讀時間'); return; }
+
+  queue.push({ title, desc, tag, cat, slug, img, pos, date, read: parseInt(read) });
+  renderQueue();
+  clearForm(true); // clear but keep date
+  showToast(`✓ 已加入佇列，目前共 ${queue.length} 篇待新增`);
+}
+
+// ── Render queue list ──
+function renderQueue() {
+  const count = queue.length;
+  document.getElementById('queue-count').textContent = count;
+  document.getElementById('queue-empty').style.display = count === 0 ? '' : 'none';
+  document.getElementById('clear-queue-btn').style.display = count > 0 ? '' : 'none';
+
+  // Generate bar
+  const genBar = document.getElementById('generate-bar');
+  genBar.style.display = count > 0 && currentHTML ? '' : 'none';
+  document.getElementById('gen-count').textContent = count;
+
+  // Cards
+  const listEl = document.getElementById('queue-list');
+  // Remove existing cards
+  listEl.querySelectorAll('.q-card').forEach(el => el.remove());
+
+  queue.forEach((a, i) => {
+    const card = document.createElement('div');
+    card.className = 'q-card';
+    card.innerHTML = `
+      <div class="q-num">${i+1}</div>
+      <div class="q-body">
+        <div class="q-title">${a.title}</div>
+        <div class="q-meta">
+          <span class="q-tag">${a.cat}</span>
+          <span class="q-info">/pages/${a.slug}</span>
+          <span class="q-info">📅 ${a.date}</span>
+          <span class="q-info">⏱ ${a.read}分鐘</span>
+          ${a.img ? '<span class="q-info">🖼 有封面圖</span>' : ''}
+        </div>
+      </div>
+      <button class="q-remove" onclick="removeFromQueue(${i})" title="移除">✕</button>`;
+    listEl.appendChild(card);
+  });
+}
+
+function removeFromQueue(i) {
+  const removed = queue.splice(i, 1)[0];
+  renderQueue();
+  showToast(`已移除：${removed.title.slice(0,20)}…`);
+}
+
+function clearQueue() {
+  if (queue.length === 0) return;
+  queue = [];
+  renderQueue();
+  showToast('已清空佇列');
+}
+
+// ── Generate final HTML ──
+function generateHTML() {
+  if (!currentHTML) { showToast('請先在步驟①貼上 HTML'); return; }
+  if (queue.length === 0) { showToast('佇列中沒有文章，請先填表單加入'); return; }
+
+  // Build all new article entries
+  const newEntries = queue.map(a =>
+    `\n  {title:'${a.title}',\n   desc:'${a.desc}',\n   cat:'${a.cat}',tag:'${a.tag}',\n   url:B+'/pages/${a.slug}',img:'${a.img}',pos:'${a.pos}',\n   date:'${a.date}',read:${a.read}},`
+  ).join('\n');
+
+  // Find insertion point before "];" closing ARTICLES
+  let updatedHTML = currentHTML;
+  const articlesEndPattern = /(\];[\s\S]*?\/\* ── HELPERS)/;
+  const articlesEnd = currentHTML.search(articlesEndPattern);
+
+  if (articlesEnd === -1) {
+    const lastReadIdx = currentHTML.lastIndexOf("read:");
+    const closingIdx = currentHTML.indexOf('];', lastReadIdx);
+    if (closingIdx === -1) {
+      showToast('找不到 ARTICLES 結尾，請確認 HTML 格式正確');
+      return;
+    }
+    updatedHTML = currentHTML.slice(0, closingIdx) + newEntries + '\n' + currentHTML.slice(closingIdx);
+  } else {
+    updatedHTML = currentHTML.slice(0, articlesEnd) + newEntries + '\n' + currentHTML.slice(articlesEnd);
+  }
+
+  // Update counts
+  const newCount = baseArticleCount + queue.length;
+  updatedHTML = updatedHTML
+    .replace(/(\d+) 篇專業文章/g, `${newCount} 篇專業文章`)
+    .replace(/(\d+)篇專業文章/g, `${newCount}篇專業文章`)
+    .replace(/(\d+)篇寢具專業知識/g, `${newCount}篇寢具專業知識`)
+    .replace(/(\d+) 篇天絲/g, `${newCount} 篇天絲`)
+    .replace(/54篇/g, `${newCount}篇`)
+    .replace(/"54 /g, `"${newCount} `);
+
+  // Update dateModified
+  const today = new Date().toISOString().slice(0,10);
+  updatedHTML = updatedHTML.replace(/"dateModified": "[^"]+"/g, `"dateModified": "${today}"`);
+
+  window._updatedHTML = updatedHTML;
+
+  // Show output panel
+  const outputPanel = document.getElementById('output-panel');
+  outputPanel.style.display = 'block';
+  outputPanel.scrollIntoView({ behavior:'smooth', block:'start' });
+
+  // Preview
+  const preview = updatedHTML.length > 4000
+    ? updatedHTML.slice(0, 2500) + '\n\n… [中間省略，完整內容請下載或複製全部] …\n\n' + updatedHTML.slice(-800)
+    : updatedHTML;
+  document.getElementById('output-preview').textContent = preview;
+
+  // Meta bar
+  const titles = queue.map((a,i) => `<span style="opacity:.7">${i+1}.</span> ${a.title.slice(0,25)}${a.title.length>25?'…':''}`).join(' &nbsp;·&nbsp; ');
+  document.getElementById('output-meta-bar').innerHTML = `
+    <div class="output-meta-item">✓ 共新增 <strong>${queue.length} 篇</strong>文章</div>
+    <div class="output-meta-item" style="color:var(--muted);font-size:11.5px;">${titles}</div>
+    <div class="output-meta-item" style="margin-left:auto;">總計 <strong>${newCount} 篇</strong></div>`;
+
+  document.getElementById('art-count-badge').textContent = `已輸出：${newCount} 篇`;
+  showToast(`✦ 已將 ${queue.length} 篇文章加入 HTML，共 ${newCount} 篇`);
+}
+
+// ── Copy ──
+function copyOutput() {
+  const html = window._updatedHTML;
+  if (!html) return;
+  navigator.clipboard.writeText(html).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = '已複製 ✓';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '複製全部 HTML'; btn.classList.remove('copied'); }, 2500);
+    showToast('已複製完整 HTML，可直接貼到 Shopline');
+  });
+}
+
+// ── Download ──
+function downloadHTML() {
+  const html = window._updatedHTML;
+  if (!html) return;
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `flightmode-guide-${new Date().toISOString().slice(0,10)}.html`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('↓ 下載中…');
+}
+
+// ── Clear form ──
+function clearForm(keepDate = false) {
+  ['f-title','f-cat','f-slug','f-img','f-desc','f-read'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.querySelectorAll('.tag-opt').forEach(r => r.checked = false);
+  document.querySelectorAll('.pos-opt').forEach(r => r.checked = false);
+  document.getElementById('p-cl').checked = true;
+  if (!keepDate) {
+    document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
+  }
+}
+
+// ── Toast ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+</script>
+
+
+</body></html>
